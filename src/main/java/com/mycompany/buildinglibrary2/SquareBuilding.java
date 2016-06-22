@@ -35,7 +35,6 @@ public class SquareBuilding extends Region
     private final DoubleProperty size = new SimpleDoubleProperty();
     private final DoubleProperty angle = new SimpleDoubleProperty();
     private final DoubleProperty cos = new SimpleDoubleProperty();
-
     
     {
         //more efficient, as less object creations and recalculations
