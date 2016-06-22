@@ -18,17 +18,27 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.AmbientLight;
 import javafx.scene.Group;
-import javafx.scene.Parent;
+import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TitledPane;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import static javafx.scene.input.KeyCode.A;
+import static javafx.scene.input.KeyCode.D;
+import static javafx.scene.input.KeyCode.DOWN;
+import static javafx.scene.input.KeyCode.LEFT;
+import static javafx.scene.input.KeyCode.RIGHT;
+import static javafx.scene.input.KeyCode.S;
+import static javafx.scene.input.KeyCode.UP;
+import static javafx.scene.input.KeyCode.W;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -49,7 +59,7 @@ public class MainApp extends Application
     public final DoubleProperty buildingAngle = new SimpleDoubleProperty(70);
     private final DoubleProperty sin = new SimpleDoubleProperty();
 
-    private final DoubleProperty cameraAngle = new SimpleDoubleProperty(20);
+    private final DoubleProperty cameraAngle = new SimpleDoubleProperty(25);
 
     private final DoubleProperty cameraSin = new SimpleDoubleProperty();
 
@@ -64,8 +74,17 @@ public class MainApp extends Application
         cameraCos.bind(MathBindings.cos(MathBindings.toRadians(cameraAngle)));
     }
 
-    StringProperty fps = new SimpleStringProperty();
+    private StringProperty fps = new SimpleStringProperty();
     
+    private final DoubleProperty notreDameXTranslate = new SimpleDoubleProperty(200);
+    private final DoubleProperty notreDameYTranslate = new SimpleDoubleProperty(200);
+
+    private final DoubleProperty width = new SimpleDoubleProperty(200);
+    private final DoubleProperty height = new SimpleDoubleProperty(300);
+    private final DoubleProperty depth = new SimpleDoubleProperty(400);
+
+    private final DoubleProperty zoom = new SimpleDoubleProperty(500);
+
     @Override
     public void start(Stage stage) throws Exception
     {
@@ -73,9 +92,8 @@ public class MainApp extends Application
 
         Group subRoot = new Group();
 
-        //VBox sliderArea = sliderArea(subRoot);
-        //TitledPane sliderWrapper = new FoucsRejectingTitledPane("controls", sliderArea, subRoot);
-        
+        VBox sliderArea = sliderArea(subRoot);
+        TitledPane sliderWrapper = new FoucsRejectingTitledPane("controls", sliderArea, subRoot);
         //http://stackoverflow.com/questions/28287398/what-is-the-preferred-way-of-getting-the-frame-rate-of-a-javafx-application
         AnimationTimer frameRateMeter = new AnimationTimer()
         {
@@ -95,13 +113,13 @@ public class MainApp extends Application
                     long elapsedNanos = now - oldFrameTime;
                     long elapsedNanosPerFrame = elapsedNanos / frameTimes.length;
                     double frameRate = 1_000_000_000.0 / elapsedNanosPerFrame;
-                   fps.setValue(String.format("Current frame rate: %.1f", frameRate));
+                    fps.setValue(String.format("Current frame rate: %.1f", frameRate));
                 }
             }
         };
         frameRateMeter.start();
 
-        //root.getChildren().add(sliderWrapper);
+        root.getChildren().add(sliderWrapper);
         ImageView image = new ImageView("https://www.petfinder.com/wp-content/uploads/2012/11/140272627-grooming-needs-senior-cat-632x475.jpg");
 
         image.setFitWidth(50);
@@ -123,6 +141,15 @@ public class MainApp extends Application
         //secondBuilding.translateXProperty().bind(notreDameXTranslate.add(width.multiply(1.5)));
         //secondBuilding.translateYProperty().bind(notreDameYTranslate.add(width.multiply(1.5)));
         //subRoot.getChildren().add(secondBuilding);
+        Image BuildingImage = new Image("http://cloud.graphicleftovers.com/15054/81254/color-square-tiles-pattern.jpg");
+        RectangularBuildingBuilder builder = new RectangularBuildingBuilder(BuildingImage, BuildingImage, BuildingImage, BuildingImage, RectangularBuilding.DEFAULT_ANGLE, 150, 150, 150, 0, 0);
+        for (int i = 0; i < 5; i++)
+        {
+            builder.setX(i * 200);
+            RectangularBuilding rb = builder.build();
+            subRoot.getChildren().add(rb);
+        }
+
         SubScene subScene = new SubScene(subRoot, 350, 250, true, SceneAntialiasing.DISABLED);
         AmbientLight sceneLight = new AmbientLight(Color.RED);
         sceneLight.setLightOn(true);
@@ -139,8 +166,8 @@ public class MainApp extends Application
 
         PerspectiveCamera camera = new PerspectiveCamera();
 
-        camera.setFieldOfView(40);
-        camera.translateZProperty().set(-500);
+        camera.fieldOfViewProperty().set(20);
+        camera.translateZProperty().bind(zoom.negate());
         Rotate cameraRotate = new Rotate(0, Rotate.X_AXIS);
         cameraRotate.angleProperty().bind(cameraAngle);
         camera.getTransforms().add(cameraRotate);
@@ -326,6 +353,62 @@ public class MainApp extends Application
         stage.titleProperty().bind(fps);
         stage.setScene(scene);
         stage.show();
+    }
+    
+    private VBox sliderArea(Node focusser)
+    {
+
+        Label xLabel = new Label("X Offset");
+        Slider xSlider = new FocusRejectingSlider(0, 1000, notreDameXTranslate.getValue(), focusser);
+        xSlider.showTickMarksProperty().set(true);
+        xSlider.showTickLabelsProperty().set(true);
+        xSlider.setMajorTickUnit(100);
+        notreDameXTranslate.bind(xSlider.valueProperty());
+
+        Label yLabel = new Label("Y Offset");
+        Slider ySlider = new FocusRejectingSlider(0, 1000, notreDameYTranslate.getValue(), focusser);
+        ySlider.showTickMarksProperty().set(true);
+        ySlider.showTickLabelsProperty().set(true);
+        ySlider.setMajorTickUnit(100);
+        notreDameYTranslate.bind(ySlider.valueProperty());
+
+        Label buildingAngleLabel = new Label("Building Angle");
+        Slider buildingAngleSlider = new FocusRejectingSlider(0, 90, buildingAngle.getValue(), focusser);
+        buildingAngle.bind(buildingAngleSlider.valueProperty());
+
+        Label cameraAngleLabel = new Label("Camera Angle");
+        Slider cameraAngleSlider = new FocusRejectingSlider(0, 90, cameraAngle.getValue(), focusser);
+        cameraAngle.bind(cameraAngleSlider.valueProperty());
+
+        Label widthLabel = new Label("Width");
+        Slider widthSlider = new FocusRejectingSlider(Double.MIN_NORMAL, 1000, width.getValue(), focusser);
+        widthSlider.showTickMarksProperty().set(true);
+        widthSlider.showTickLabelsProperty().set(true);
+        widthSlider.setMajorTickUnit(100);
+        width.bind(widthSlider.valueProperty());
+
+        Label heightLabel = new Label("Height");
+        Slider heightSlider = new FocusRejectingSlider(Double.MIN_NORMAL, 1000, width.getValue(), focusser);
+        heightSlider.showTickMarksProperty().set(true);
+        heightSlider.showTickLabelsProperty().set(true);
+        heightSlider.setMajorTickUnit(100);
+        height.bind(heightSlider.valueProperty());
+
+        Label depthLabel = new Label("Depth");
+        Slider depthSlider = new FocusRejectingSlider(Double.MIN_NORMAL, 1000, width.getValue(), focusser);
+        depthSlider.showTickMarksProperty().set(true);
+        depthSlider.showTickLabelsProperty().set(true);
+        depthSlider.setMajorTickUnit(100);
+        depth.bind(depthSlider.valueProperty());
+
+        Label zoomLabel = new Label("Zoom");
+        Slider zoomSlider = new FocusRejectingSlider(-500, 5000, zoom.getValue(), focusser);
+        zoom.bind(zoomSlider.valueProperty());
+
+        return new VBox(xLabel, xSlider, yLabel, ySlider, buildingAngleLabel,
+                        buildingAngleSlider, cameraAngleLabel, cameraAngleSlider,
+                        widthLabel, widthSlider, heightLabel, heightSlider,
+                        depthLabel, depthSlider, zoomLabel, zoomSlider);
     }
 
     /**

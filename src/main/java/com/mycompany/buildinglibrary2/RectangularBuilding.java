@@ -15,6 +15,7 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Shear;
@@ -23,7 +24,7 @@ import javafx.scene.transform.Shear;
  *
  * @author pramukh
  */
-public class RectangularBuilding extends Building
+public class RectangularBuilding extends Building<Rectangle>
 {
 
     
@@ -234,5 +235,11 @@ public class RectangularBuilding extends Building
         Group topGroup = new Group(top);
 
         return topGroup;
+    }
+
+    @Override
+    public Rectangle getBoundingBox()
+    {
+        return new Rectangle(getTranslateX(), getTranslateY(), getWidth(), getHeight());
     }
 }
